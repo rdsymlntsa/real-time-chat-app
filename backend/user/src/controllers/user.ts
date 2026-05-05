@@ -105,3 +105,9 @@ export const updateName = TryCatch(async (req: AuthenticatedRequest, res) => {
     token,
   });
 });
+
+export const getAllUsers=TryCatch(async (req:AuthenticatedRequest,res)=>{
+  const users=await User.find();
+
+  res.json(users);
+})
