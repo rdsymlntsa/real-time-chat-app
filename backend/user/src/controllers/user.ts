@@ -3,6 +3,7 @@ import { redisClient } from "../index.js";
 import { publishToQueue } from "../config/rabbitmq.js";
 import { User } from "../model/User.js";
 import { generateToken } from "../config/generateToken.js";
+import { AuthenticatedRequest } from "../middleware/isAuth.js";
 
 export const loginUser = TryCatch(async (req, res) => {
   const { email } = req.body;
@@ -40,43 +41,47 @@ export const loginUser = TryCatch(async (req, res) => {
   });
 });
 
-export const verifyUser=TryCatch(async (req,res)=>{
-  const {email,otp:enteredOtp}=req.body;
-  
-  if(!email || !enteredOtp){
+export const verifyUser = TryCatch(async (req, res) => {
+  const { email, otp: enteredOtp } = req.body;
+
+  if (!email || !enteredOtp) {
     res.status(400).json({
-      message: "Email and OTP required."
-    })
+      message: "Email and OTP required.",
+    });
     return;
   }
 
-  const otpKey=`otp:${email}`;
+  const otpKey = `otp:${email}`;
 
-  const storedOtp=await redisClient.get(otpKey);
+  const storedOtp = await redisClient.get(otpKey);
 
-  if(!storedOtp || storedOtp && storedOtp!==enteredOtp){
+  if (!storedOtp || (storedOtp && storedOtp !== enteredOtp)) {
     res.status(400).json({
-      message: "Invalid or expired OTP"
-    })
+      message: "Invalid or expired OTP",
+    });
     return;
   }
 
   await redisClient.del(otpKey);
 
-  let user=await User.findOne({email});
+  let user = await User.findOne({ email });
 
-  if(!user){
-    const name=email.slice(0,8);
-    user=await User.create({name,email});
+  if (!user) {
+    const name = email.slice(0, 8);
+    user = await User.create({ name, email });
   }
 
-  const token=generateToken(user);
+  const token = generateToken(user);
 
   res.json({
     message: "User verified",
     user,
-    token
-  })
+    token,
+  });
+});
 
+export const getProfile = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
 
-})
+  res.json(user);
+});
