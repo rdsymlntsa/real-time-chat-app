@@ -26,3 +26,19 @@ export const createNewChat = TryCatch(
     res.status(201).json({ message: "New chat created", chatId: newChat._id });
   },
 );
+
+export const getAllchats=TryCatch(async(req:AuthenticatedRequest,res)=>{
+const userId=req.user?._id;
+if(!userId){
+  res.status(400).json({message: "UserId missing"});
+  return;
+}
+
+const chats=await Chat.find({users: userId}).sort({updatedAt: -1});
+
+const chatWithUserData=await Promise.all(
+  chats.map(async (chat)=>{
+    const otherUserId=chat.users.find((id)=> id!=userId);
+  })
+)
+})
