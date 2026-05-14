@@ -9,6 +9,7 @@ import {
 } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { Toaster } from "react-hot-toast";
 
 export const user_service = "http://localhost:5000";
 export const chat_service = "http://localhost:5002";
@@ -82,6 +83,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   return (
     <AppContext.Provider value={{ user, setUser, isAuth, setIsAuth, loading }}>
       {children}
+      <Toaster />
     </AppContext.Provider>
   );
 };
